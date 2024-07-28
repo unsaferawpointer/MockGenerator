@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum MockableError: Error {
+public enum MockableError: Error {
 	case isNotAProtocol
 	case protocolIsInherited
 	case containsPrimaryAssociatedTypeClause
@@ -17,7 +17,7 @@ enum MockableError: Error {
 // MARK: - CustomStringConvertible
 extension MockableError: CustomStringConvertible {
 
-	var description: String {
+	public var description: String {
 		switch self {
 		case .isNotAProtocol:
 			"@MockGenerator can only be applied to protocols."
