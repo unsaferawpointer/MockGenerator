@@ -7,7 +7,16 @@
 
 import SwiftSyntax
 
-final class ErrorsFactory { }
+final class ErrorsFactory { 
+
+	let configuration: Configuration
+
+	// MARK: - Initialization
+
+	init(configuration: Configuration) {
+		self.configuration = configuration
+	}
+}
 
 extension ErrorsFactory {
 
@@ -90,39 +99,45 @@ extension ErrorsFactory {
 
 	static func makeBlock(for function: FunctionDeclSyntax, with data: MacrosData, configuration: Configuration.Errors) -> CodeBlockItemSyntax {
 
-		let identifierPattern = IdentifierPatternSyntax(identifier: .identifier("error"))
-
-		let errors = DeclReferenceExprSyntax(baseName: .identifier(configuration.variable))
-		let functionCall = DeclReferenceExprSyntax(baseName: data[function.signature].name)
-
-		let memberAccessExprSyntax = MemberAccessExprSyntax(base: errors, period: .periodToken(), declName: functionCall)
-
-		let initializer = InitializerClauseSyntax(
-			equal: .equalToken(), value: memberAccessExprSyntax)
-
-		let condition = OptionalBindingConditionSyntax(bindingSpecifier: .keyword(.let), pattern: identifierPattern, initializer: initializer)
-
-		let conditionElement = ConditionElementSyntax(condition: .optionalBinding(condition))
-		let conditionElementListSyntax = ConditionElementListSyntax([conditionElement])
+		let condition = OptionalBindingConditionSyntax(
+			bindingSpecifier: .keyword(.let),
+			pattern: IdentifierPatternSyntax(identifier: .identifier("error")),
+			initializer: InitializerClauseSyntax(
+				value: MemberAccessExprSyntax(
+					base: DeclReferenceExprSyntax(
+						baseName: .identifier(configuration.variable)
+					),
+					declName: DeclReferenceExprSyntax(
+						baseName: data[function.signature].name
+					)
+				)
+			)
+		)
 
 		let expression = IfExprSyntax(
 			ifKeyword: .keyword(.if),
-			conditions: conditionElementListSyntax,
-			body: makeIfBlockInside()
+			conditions: ConditionElementListSyntax(
+				[
+					ConditionElementSyntax(condition: .optionalBinding(condition))
+				]
+			),
+			body: CodeBlockSyntax(
+				statements: 
+					[
+						CodeBlockItemSyntax(
+							item: .init(ThrowStmtSyntax(
+								expression: DeclReferenceExprSyntax(baseName: .identifier("error")))
+							)
+						)
+					]
+			)
 		)
 
 		let item = ExpressionStmtSyntax(expression: expression)
 
-		return CodeBlockItemSyntax(item: .init(item))
-	}
-
-	static func makeIfBlockInside() -> CodeBlockSyntax {
-
-		let expression = DeclReferenceExprSyntax(baseName: .identifier("error"))
-		let throwStmt = ThrowStmtSyntax(expression: expression)
-		let item = CodeBlockItemSyntax(item: .init(throwStmt))
-		let statements = CodeBlockItemListSyntax([item])
-		return CodeBlockSyntax(statements: statements)
+		return CodeBlockItemSyntax(
+			item: .init(item)
+		)
 	}
 }
 
