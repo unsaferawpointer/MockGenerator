@@ -6,6 +6,7 @@
 //
 
 import SwiftSyntax
+import SwiftBasicFormat
 
 final class StubsFactory { }
 

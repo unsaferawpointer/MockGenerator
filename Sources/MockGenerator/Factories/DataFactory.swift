@@ -11,7 +11,7 @@ final class DataFactory { }
 
 extension DataFactory {
 	
-	func makeData(from functions: [FunctionDeclSyntax]) -> MacrosData {
+	func makeData(from functions: [FunctionDeclSyntax], mockName: String) -> MacrosData {
 
 		let nameResolver = NameResolver()
 
@@ -37,7 +37,7 @@ extension DataFactory {
 			cases.append(functionData)
 		}
 
-		return MacrosData(map: map, cases: cases)
+		return MacrosData(mockName: mockName, map: map, cases: cases)
 	}
 }
 

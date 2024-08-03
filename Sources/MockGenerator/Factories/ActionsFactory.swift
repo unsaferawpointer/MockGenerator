@@ -8,7 +8,7 @@
 import SwiftSyntax
 
 protocol ActionFactoryProtocol {
-	static func makeStruct(from functions: [FunctionDeclSyntax], with configration: Configuration.Action) -> EnumDeclSyntax
+	static func makeStruct(from data: MacrosData, with configration: Configuration.Action) -> EnumDeclSyntax
 	static func makeVariable(with configration: Configuration.Action) -> VariableDeclSyntax
 }
 
@@ -17,9 +17,7 @@ final class ActionsFactory { }
 // MARK: - ActionFactoryProtocol
 extension ActionsFactory: ActionFactoryProtocol {
 
-	static func makeStruct(from functions: [FunctionDeclSyntax], with configration: Configuration.Action) -> EnumDeclSyntax {
-
-		let data = DataFactory().makeData(from: functions)
+	static func makeStruct(from data: MacrosData, with configration: Configuration.Action) -> EnumDeclSyntax {
 
 		let members = data.functions.compactMap { wrapper in
 			let parameters = wrapper.parameters.map {

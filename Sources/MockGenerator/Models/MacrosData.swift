@@ -21,14 +21,17 @@ struct Parameter {
 }
 
 struct MacrosData {
-	
+
+	private (set) var mockName: String
+
 	private (set) var map: [FunctionSignatureSyntax: Int]
 
 	private (set) var functions: [FunctionData] = []
 
 	// MARK: - Initialization
 
-	init(map: [FunctionSignatureSyntax : Int], cases: [FunctionData]) {
+	init(mockName: String, map: [FunctionSignatureSyntax : Int], cases: [FunctionData]) {
+		self.mockName = mockName
 		self.map = map
 		self.functions = cases
 	}

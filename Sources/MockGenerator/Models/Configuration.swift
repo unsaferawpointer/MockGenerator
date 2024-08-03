@@ -15,10 +15,13 @@ struct Configuration {
 
 	private (set) var errors: Errors
 
-	init(action: Action, stub: Stub, errors: Errors) {
+	var comments: Comments
+
+	init(action: Action, stub: Stub, errors: Errors, comments: Comments) {
 		self.action = action
 		self.stub = stub
 		self.errors = errors
+		self.comments = comments
 	}
 }
 
@@ -37,6 +40,10 @@ extension Configuration {
 	struct Errors {
 		let type: String
 		let variable: String
+	}
+
+	struct Comments {
+		var nestedStructsExtension: String
 	}
 }
 
