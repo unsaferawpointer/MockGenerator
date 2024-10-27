@@ -9,11 +9,11 @@ import SwiftSyntax
 
 final class ErrorsFactory { 
 
-	let configuration: Configuration
+	let configuration: MockConfiguration
 
 	// MARK: - Initialization
 
-	init(configuration: Configuration) {
+	init(configuration: MockConfiguration) {
 		self.configuration = configuration
 	}
 }
@@ -23,7 +23,7 @@ extension ErrorsFactory {
 	static func makeStruct(
 		for functions: [FunctionDeclSyntax],
 		with data: MacrosData,
-		configuration: Configuration.Errors
+		configuration: MockConfiguration.Errors
 	) -> StructDeclSyntax? {
 
 		let variables = functions.compactMap { function -> FunctionSignatureSyntax? in
@@ -37,7 +37,7 @@ extension ErrorsFactory {
 
 			let typeAnnotation = TypeAnnotationSyntax(
 				colon: .colonToken(),
-				type: OptionalTypeSyntax(wrappedType: IdentifierTypeSyntax(name: .identifier("Error")))
+				type: OptionalTypeSyntax(wrappedType: IdentifierTypeSyntax(name: .identifier(configuration.type)))
 			)
 
 			let pattern = PatternBindingSyntax(
@@ -62,16 +62,16 @@ extension ErrorsFactory {
 		let memberBlock = MemberBlockSyntax(members: memberBlockItemList)
 
 		return StructDeclSyntax(
-			name: configuration.token,
+			name: .identifier(configuration.type),
 			memberBlock: memberBlock
 		)
 	}
 
-	static func makeVariable(with configuration: Configuration.Errors) -> VariableDeclSyntax {
+	static func makeVariable(with configuration: MockConfiguration.Errors) -> VariableDeclSyntax {
 
 		let identifier = IdentifierPatternSyntax(identifier: .identifier(configuration.variable))
 
-		let errorsType = IdentifierTypeSyntax(name: configuration.token)
+		let errorsType = IdentifierTypeSyntax(name: .identifier(configuration.type))
 
 		let type = TypeAnnotationSyntax(type: errorsType)
 
@@ -97,7 +97,7 @@ extension ErrorsFactory {
 		)
 	}
 
-	static func makeBlock(for function: FunctionDeclSyntax, with data: MacrosData, configuration: Configuration.Errors) -> CodeBlockItemSyntax {
+	static func makeBlock(for function: FunctionDeclSyntax, with data: MacrosData, configuration: MockConfiguration.Errors) -> CodeBlockItemSyntax {
 
 		let condition = OptionalBindingConditionSyntax(
 			bindingSpecifier: .keyword(.let),
@@ -139,9 +139,4 @@ extension ErrorsFactory {
 			item: .init(item)
 		)
 	}
-}
-
-// MARK: - Helpers
-private extension ErrorsFactory {
-
 }

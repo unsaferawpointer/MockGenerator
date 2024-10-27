@@ -10,23 +10,19 @@ import SwiftParser
 import SwiftSyntax
 import SwiftBasicFormat
 
-public protocol GeneratorProtocol {
-	func generate(for source: String) throws -> String
-}
-
 public final class Generator {
 
 	public init() { }
 }
 
-// MARK: - GeneratorProtocol
-extension Generator: GeneratorProtocol {
+// MARK: - MockGeneratorProtocol
+extension Generator: MockGeneratorProtocol {
 
 	public func generate(for source: String) throws -> String {
 
 		// MARK: - Start configuration
 
-		let configuration = Configuration(
+		let configuration = MockConfiguration(
 			action: .init(type: "Action", variable: "invocations"),
 			stub: .init(type: "Stubs", variable: "stubs"),
 			errors: .init(type: "Errors", variable: "errors"), 
@@ -47,15 +43,18 @@ extension Generator: GeneratorProtocol {
 
 		var formatted = try Generator.makeMock(declaration: protocolDecl, configuration: configuration)
 
-		BasicFormat().rewrite(formatted).write(to: &source)
+		BasicFormat(indentationWidth: .tab)
+			.rewrite(formatted)
+			.write(to: &source)
 
 		return source
 	}
 }
 
-extension Generator {
+// MARK: - Helpers
+private extension Generator {
 
-	static func makeNestedStructs(protocolDecl: ProtocolDeclSyntax, configuration: Configuration) -> ExtensionDeclSyntax {
+	static func makeNestedStructs(protocolDecl: ProtocolDeclSyntax, configuration: MockConfiguration) -> ExtensionDeclSyntax {
 
 		let type = IdentifierTypeSyntax(name: .identifier("\(protocolDecl.name.text)Mock"))
 
@@ -69,7 +68,7 @@ extension Generator {
 
 		var members = MemberBlockItemListSyntax([])
 
-		if let stubsDecl = StubsFactory.makeStruct(for: functions, with: data, configuration: configuration.stub) {
+		if let stubsDecl = StubsFactory(configuration: configuration.stub).makeStruct(for: functions, with: data) {
 			let member = MemberBlockItemSyntax(decl: stubsDecl)
 			members.append(member)
 		}
@@ -94,7 +93,7 @@ extension Generator {
 		return result
 	}
 
-	static func makeMock(declaration: some DeclSyntaxProtocol, configuration: Configuration) throws -> CodeBlockItemListSyntax {
+	static func makeMock(declaration: some DeclSyntaxProtocol, configuration: MockConfiguration) throws -> CodeBlockItemListSyntax {
 
 		let protocolDeclaration = try ValidationManager.validate(decl: declaration)
 
@@ -125,9 +124,9 @@ extension Generator {
 
 		// MARK: - Stubs support
 
-		if let _ = StubsFactory.makeStruct(for: functions, with: data, configuration: configuration.stub) {
+		if let _ = StubsFactory(configuration: configuration.stub).makeStruct(for: functions, with: data) {
 
-			let variable = StubsFactory.makeVariable(with: configuration.stub)
+			let variable = StubsFactory(configuration: configuration.stub).makeVariable()
 			let variableMember = MemberBlockItemSyntax(decl: variable)
 			members.append(variableMember)
 		}

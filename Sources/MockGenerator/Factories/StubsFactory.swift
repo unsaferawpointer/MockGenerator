@@ -8,14 +8,22 @@
 import SwiftSyntax
 import SwiftBasicFormat
 
-final class StubsFactory { }
+final class StubsFactory { 
+
+	let configuration: MockConfiguration.Stub
+
+	// MARK: - Initialization
+
+	init(configuration: MockConfiguration.Stub) {
+		self.configuration = configuration
+	}
+}
 
 extension StubsFactory {
 
-	static func makeStruct(
+	func makeStruct(
 		for functions: [FunctionDeclSyntax],
-		with data: MacrosData,
-		configuration: Configuration.Stub
+		with data: MacrosData
 	) -> StructDeclSyntax? {
 
 		let variables = functions
@@ -54,16 +62,16 @@ extension StubsFactory {
 		let memberBlock = MemberBlockSyntax(members: members)
 
 		return StructDeclSyntax(
-			name: configuration.token,
+			name: .identifier(configuration.type),
 			memberBlock: memberBlock
 		)
 	}
 
-	static func makeVariable(with configuration: Configuration.Stub) -> VariableDeclSyntax {
+	func makeVariable() -> VariableDeclSyntax {
 
 		let identifier = IdentifierPatternSyntax(identifier: .identifier(configuration.variable))
 
-		let stubType = IdentifierTypeSyntax(name: configuration.token)
+		let stubType = IdentifierTypeSyntax(name: .identifier(configuration.type))
 
 		let type = TypeAnnotationSyntax(type: stubType)
 
@@ -89,54 +97,52 @@ extension StubsFactory {
 		)
 	}
 
-	static func makeBlock(
-		for function: FunctionDeclSyntax,
-		with data: MacrosData,
-		andConfiguration configuration: Configuration.Stub
-	) -> CodeBlockItemSyntax {
-
-		let identifierPattern = IdentifierPatternSyntax(identifier: .identifier("stub"))
-
-		let variable = DeclReferenceExprSyntax(baseName: .identifier(configuration.variable))
-		let stubName = DeclReferenceExprSyntax(baseName: data[function.signature].name)
-
-		let memberAccessExprSyntax = MemberAccessExprSyntax(
-			base: variable,
-			period: .periodToken(),
-			declName: stubName
-		)
+	func makeBlock(for function: FunctionDeclSyntax, with data: MacrosData) -> CodeBlockItemSyntax {
 
 		let initializer = InitializerClauseSyntax(
-			equal: .equalToken(), value: memberAccessExprSyntax)
-
-		let condition = OptionalBindingConditionSyntax(
-			bindingSpecifier: .keyword(.let),
-			pattern: identifierPattern,
-			initializer: initializer
+			value: MemberAccessExprSyntax(
+				base: DeclReferenceExprSyntax(
+					baseName: .identifier(configuration.variable)
+				),
+				declName: DeclReferenceExprSyntax(
+					baseName: data[function.signature].name
+				)
+			)
 		)
 
-		let conditionElement = ConditionElementSyntax(condition: .optionalBinding(condition))
-		let conditionElementListSyntax = ConditionElementListSyntax([conditionElement])
-		let guardStmtSyntax = GuardStmtSyntax(conditions: conditionElementListSyntax, body: makeElseBlock())
-
-		return CodeBlockItemSyntax(item: .init(guardStmtSyntax))
-	}
-}
-
-// MARK: - Helpers
-private extension StubsFactory {
-
-	static func makeElseBlock() -> CodeBlockSyntax {
-		let function = DeclReferenceExprSyntax(baseName: .identifier("fatalError"))
-		let funtionCall = FunctionCallExprSyntax(
-			calledExpression: function,
-			leftParen: .leftParenToken(),
-			arguments: .init([]),
-			rightParen: .rightParenToken(),
-			additionalTrailingClosures: .init([])
+		let condition = ConditionElementSyntax(
+			condition: .optionalBinding(
+				OptionalBindingConditionSyntax(
+					bindingSpecifier: .keyword(.let),
+					pattern: IdentifierPatternSyntax(identifier: .identifier("stub")),
+					initializer: initializer
+				)
+			)
 		)
-		let item = CodeBlockItemSyntax(item: .init(funtionCall))
-		let statements = CodeBlockItemListSyntax([item])
-		return CodeBlockSyntax(statements: statements)
+
+		let statement = CodeBlockItemSyntax(
+			item: .init(
+				FunctionCallExprSyntax(
+					calledExpression: DeclReferenceExprSyntax(
+						baseName: .identifier("fatalError")
+					),
+					leftParen: .leftParenToken(),
+					arguments: .init([]),
+					rightParen: .rightParenToken(),
+					additionalTrailingClosures: .init([])
+				)
+			)
+		)
+
+		return CodeBlockItemSyntax(
+			item: .init(
+				GuardStmtSyntax(
+					conditions: ConditionElementListSyntax([condition]),
+					body: CodeBlockSyntax(
+						statements: CodeBlockItemListSyntax([statement])
+					)
+				)
+			)
+		)
 	}
 }

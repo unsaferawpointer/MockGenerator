@@ -8,8 +8,8 @@
 import SwiftSyntax
 
 protocol ActionFactoryProtocol {
-	static func makeStruct(from data: MacrosData, with configration: Configuration.Action) -> EnumDeclSyntax
-	static func makeVariable(with configration: Configuration.Action) -> VariableDeclSyntax
+	static func makeStruct(from data: MacrosData, with configration: MockConfiguration.Action) -> EnumDeclSyntax
+	static func makeVariable(with configration: MockConfiguration.Action) -> VariableDeclSyntax
 }
 
 final class ActionsFactory { }
@@ -17,7 +17,7 @@ final class ActionsFactory { }
 // MARK: - ActionFactoryProtocol
 extension ActionsFactory: ActionFactoryProtocol {
 
-	static func makeStruct(from data: MacrosData, with configration: Configuration.Action) -> EnumDeclSyntax {
+	static func makeStruct(from data: MacrosData, with configration: MockConfiguration.Action) -> EnumDeclSyntax {
 
 		let members = data.functions.compactMap { wrapper in
 			let parameters = wrapper.parameters.map {
@@ -43,16 +43,16 @@ extension ActionsFactory: ActionFactoryProtocol {
 
 		return EnumDeclSyntax(
 			enumKeyword: .keyword(.enum),
-			name: configration.token,
+			name: .identifier(configration.type),
 			memberBlock: memberBlock
 		)
 	}
 
-	static func makeVariable(with configuration: Configuration.Action) -> VariableDeclSyntax {
+	static func makeVariable(with configuration: MockConfiguration.Action) -> VariableDeclSyntax {
 
 		let identifier = IdentifierPatternSyntax(identifier: .identifier(configuration.variable))
 
-		let actionType = IdentifierTypeSyntax(name: configuration.token)
+		let actionType = IdentifierTypeSyntax(name: .identifier(configuration.type))
 
 		let type = TypeAnnotationSyntax(
 			colon: .colonToken(),

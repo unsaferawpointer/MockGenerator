@@ -9,11 +9,11 @@ import SwiftSyntax
 
 final class ImplementationFactory {
 
-	let configuration: Configuration
+	let configuration: MockConfiguration
 
 	// MARK: - Initialization
 
-	init(configuration: Configuration) {
+	init(configuration: MockConfiguration) {
 		self.configuration = configuration
 	}
 }
